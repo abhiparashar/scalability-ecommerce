@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 
 import java.awt.print.Pageable;
+import java.math.BigDecimal;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     // Optimized query with caching hint
@@ -18,4 +19,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @QueryHint(name = "org.hibernate.cacheMode", value = "NORMAL")
     })
     Page<Product> findByCategoryWithStock(@Param("category") String category, Pageable pageable);
+
+    // Price range search with index optimization
+    @Query("SELECT p FROM Product p WHERE p.price BETWEEN :minPrice and :maxPrice AND p.stockQuantity >0 ORDER BY P.price ASC")
+    @QueryHints({
+            @QueryHint(name = "org.hibernate.cacheable", value = "true")
+    })
+    Page<Product>findByPriceRange(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice);
+
 }
